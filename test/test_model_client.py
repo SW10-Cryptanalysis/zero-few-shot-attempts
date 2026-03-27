@@ -1,4 +1,5 @@
 import os
+
 os.environ["LITELLM_DISABLE_UPDATE_CHECK"] = "True"
 os.environ["LITELLM_TELEMETRY"] = "False"
 import pytest
@@ -186,10 +187,12 @@ def test_generate_response(client: ModelClient, mocker, tc: GenerateTestCase):
     """Test that generate_response correctly maps LiteLLM responses and exceptions."""
 
     # 1. Mock the litellm.completion call
+    patch_target = "src.model_client.litellm.completion"
+
     if isinstance(tc.mock_effect, Exception):
-        mocker.patch("litellm.completion", side_effect=tc.mock_effect)
+        mocker.patch(patch_target, side_effect=tc.mock_effect)
     else:
-        mocker.patch("litellm.completion", return_value=tc.mock_effect)
+        mocker.patch(patch_target, return_value=tc.mock_effect)
 
     # 2. Spy on the logger to ensure errors are being logged appropriately
     mock_logger = mocker.patch("src.model_client.logger.error")
