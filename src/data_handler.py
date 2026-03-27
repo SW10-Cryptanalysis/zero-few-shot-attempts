@@ -139,17 +139,17 @@ class DataHandler:
         messages.append(system_msg)
 
         if strategy == "few-shot":
-            for sample in self.few_shot_examples:
+            for fs_sample in self.few_shot_examples:
                 user_msg: APIMessage = {
                     "role": "user",
-                    "content": f"Ciphertext: {sample.ciphertext}",
+                    "content": f"Ciphertext: {fs_sample.ciphertext}",
                 }
 
                 messages.append(user_msg)
 
                 answer_msg: APIMessage = {
                     "role": "assistant",
-                    "content": f"{sample.plaintext}",
+                    "content": f"{fs_sample.plaintext}",
                 }
 
                 messages.append(answer_msg)
