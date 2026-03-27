@@ -79,13 +79,13 @@ class DataHandler:
                 row = json.loads(line)
                 sample = CipherSample(
                     sample_id=row["id"],
-                    ciphertext=row["cipher"],
+                    ciphertext=row["ciphertext"],
                     plaintext=row["plaintext"],
                     key=row["key"],
                     metadata=CipherMetadata(
-                        length=len(row["cipher"]),
+                        length=len(row["ciphertext"]),
                         with_spaces=with_spaces,
-                        genre=row["genre"],
+                        genre=row["genres"],
                     ),
                 )
                 parsed_data.append(sample)
