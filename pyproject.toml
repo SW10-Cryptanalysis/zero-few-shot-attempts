@@ -32,6 +32,9 @@ filterwarnings = [
     "ignore:.*scheduler.step().*not necessary.*:UserWarning"
 ]
 
+[tool.coverage.report]
+omit=["src/config_schema.py"]
+
 [tool.ruff]
 line-length = 88
 
