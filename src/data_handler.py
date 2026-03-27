@@ -60,7 +60,6 @@ class DataHandler:
         self.few_shot_examples: list[CipherSample] = []
         self.system_prompt = system_prompt
 
-
     def load_data(self, with_spaces: bool = False) -> None:
         """Load the data from the data path.
 
@@ -69,23 +68,13 @@ class DataHandler:
                 Defaults to False.
 
         """
-        with open(self.data_path) as f:
-            for line in f:
-                row = json.loads(line)
-                sample = CipherSample(
-                    sample_id=row["id"],
-                    ciphertext=row["cipher"],
-                    plaintext=row["plaintext"],
-                    key=row["key"],
-                    metadata=CipherMetadata(
-                        length=len(row["cipher"]),
-                        with_spaces=with_spaces,
-                        genre=row["genre"],
-                    ),
-                )
-                self.dataset.append(sample)
+        self.dataset = self._parse_file(self.data_path, with_spaces)
+        self.few_shot_examples = self._parse_file(self.few_shot_data_path, with_spaces)
 
-        with open(self.few_shot_data_path) as f:
+    def _parse_file(self, path: Path, with_spaces: bool) -> list[CipherSample]:
+        """Private helper to parse JSONL files into CipherSample objects."""
+        parsed_data = []
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 row = json.loads(line)
                 sample = CipherSample(
@@ -99,7 +88,8 @@ class DataHandler:
                         genre=row["genre"],
                     ),
                 )
-                self.few_shot_examples.append(sample)
+                parsed_data.append(sample)
+        return parsed_data
 
     def get_batch(self, batch_size: int) -> Iterator[list[CipherSample]]:
         """Get a batch of data from the data loader.
