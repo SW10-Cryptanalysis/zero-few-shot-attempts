@@ -16,8 +16,8 @@ prompts:
     Your entire response must be **only** the plaintext. Do not write anything before or after it — not even "here is my guess" or any other framing.
 
 paths:
-  data: "data/dataset.json"
-  few_shot_data: "data/few_shot.json"
+  data: "data/dataset.jsonl"
+  few_shot_data: "data/fewshot.jsonl"
   output_dir: "data/results/"
 
 model:
