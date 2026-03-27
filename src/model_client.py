@@ -43,7 +43,6 @@ class ModelConfig:
     max_tokens: int = 4096
 
     # 3. Network & Routing
-    api_key: str | None = None
     api_base: str | None = None
 
     # 4. Resilience
@@ -95,7 +94,6 @@ class ModelClient:
                     temperature=self.config.temperature,
                     max_tokens=self.config.max_tokens,
                     api_base=self.config.api_base,
-                    api_key=self.config.api_key,
                     num_retries=0,
                     timeout=self.config.timeout,
                 )
