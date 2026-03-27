@@ -3,6 +3,7 @@ from src.data_handler import APIMessage
 import litellm
 from src.utils.logging import get_logger
 from typing import Any
+import time
 
 logger = get_logger(__name__)
 
@@ -48,6 +49,9 @@ class ModelConfig:
     # 4. Resilience
     max_retries: int = 3
     timeout: int = 120
+    pacing_delay: float = 0.0
+    initial_backoff: float = 2.0
+    backoff_factor: float = 2.0
 
 
 class ModelClient:
@@ -77,34 +81,57 @@ class ModelClient:
             str: The response from the model.
 
         """
-        try:
-            response = litellm.completion(
-                model=self.config.model_name,
-                messages=messages,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-                api_base=self.config.api_base,
-                api_key=self.config.api_key,
-                num_retries=self.config.max_retries,
-                timeout=self.config.timeout,
-            )
-            return self._unpack_response(response)
-        except litellm.exceptions.Timeout as e:
-            logger.error(f"Timeout error for model {self.config.model_name}: {e}")
-            return ""
-        except litellm.exceptions.RateLimitError as e:
-            logger.error(f"Rate limit error for model {self.config.model_name}: {e}")
-            return ""
-        except MalformedResponseError as e:
-            logger.error(
-                f"Malformed response error for model {self.config.model_name}: {e}",
-            )
-            return ""
-        except Exception as e:
-            logger.error(
-                f"Unexpected API error for model {self.config.model_name}: {e}",
-            )
-            return ""
+        attempt = 0
+        current_backoff = self.config.initial_backoff
+
+        if self.config.pacing_delay > 0:
+            time.sleep(self.config.pacing_delay)
+
+        while attempt <= self.config.max_retries:
+            try:
+                response = litellm.completion(
+                    model=self.config.model_name,
+                    messages=messages,
+                    temperature=self.config.temperature,
+                    max_tokens=self.config.max_tokens,
+                    api_base=self.config.api_base,
+                    api_key=self.config.api_key,
+                    num_retries=0,
+                    timeout=self.config.timeout,
+                )
+                return self._unpack_response(response)
+
+            except litellm.exceptions.RateLimitError as e:
+                attempt += 1
+                if attempt > self.config.max_retries:
+                    logger.error(
+                        f"Rate limit error exhausted after {attempt - 1} retries "
+                        f"for model {self.config.model_name}: {e}",
+                    )
+                    return ""
+
+                logger.warning(
+                    f"Rate limit hit for {self.config.model_name}. "
+                    f"Backing off for {current_backoff}s "
+                    f"(Attempt {attempt}/{self.config.max_retries})",
+                )
+                time.sleep(current_backoff)
+                current_backoff *= self.config.backoff_factor
+
+            except litellm.exceptions.Timeout as e:
+                logger.error(f"Timeout error for model {self.config.model_name}: {e}")
+                return ""
+            except MalformedResponseError as e:
+                logger.error(
+                    f"Malformed response error for model {self.config.model_name}: {e}",
+                )
+                return ""
+            except Exception as e:
+                logger.error(
+                    f"Unexpected API error for model {self.config.model_name}: {e}",
+                )
+                return ""
+        return ""
 
     @staticmethod
     def _unpack_response(response: Any) -> str:
