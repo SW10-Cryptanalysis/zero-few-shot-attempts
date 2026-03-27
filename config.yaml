@@ -14,3 +14,23 @@ prompts:
 
     # Output Format
     Your entire response must be **only** the plaintext. Do not write anything before or after it — not even "here is my guess" or any other framing.
+
+paths:
+  data: "data/dataset.json"
+  few_shot_data: "data/few_shot.json"
+  output_dir: "data/results/"
+
+model:
+  name: "gpt-4o"
+  temperature: 0.0
+  max_tokens: 4096
+  max_retries: 3
+  timeout: 120
+  pacing_delay: 0.0
+  initial_backoff: 2.0
+  backoff_factor: 2.0
+
+experiment:
+  batch_size: 10
+  strategy: "zero-shot"
+  with_spaces: false
