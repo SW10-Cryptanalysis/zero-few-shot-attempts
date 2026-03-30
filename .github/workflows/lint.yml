@@ -11,12 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6.2.0
         with:
           python-version: "3.12"
+        
+      - name: Cache uv dependencies
+        uses: actions/cache@v5.0.4
+        with:
+          path: ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/uv.lock') }}
 
       - name: Install uv
         run: |
@@ -24,7 +30,7 @@ jobs:
           pip install uv
 
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --all-extras
 
       - name: Run Ruff Linter
         run: uv run ruff check .
