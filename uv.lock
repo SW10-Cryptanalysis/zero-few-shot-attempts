@@ -1917,7 +1917,7 @@ dependencies = [
     { name = "pyyaml" },
 ]
 
-[package.dev-dependencies]
+[package.optional-dependencies]
 dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -1931,16 +1931,13 @@ requires-dist = [
     { name = "editdistance", specifier = ">=0.8.1" },
     { name = "litellm", specifier = ">=1.82.6" },
     { name = "pandas", specifier = ">=3.0.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "pytest-mock", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.1" },
 ]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
-    { name = "pytest-mock", specifier = ">=3.0.0" },
-    { name = "ruff", specifier = ">=0.15.1" },
-]
+provides-extras = ["dev"]
 
 [[package]]
 name = "zipp"
