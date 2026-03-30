@@ -16,10 +16,10 @@ def generate_jsonl(file_path: Path, num_records: int) -> None:
     for i in range(num_records):
         record = {
             "id": f"id_{i}",
-            "cipher": f"abc_{i}",
+            "ciphertext": f"abc_{i}",
             "plaintext": f"def_{i}",
             "key": {"a": ["b", "c"]},
-            "genre": "test_genre",
+            "genres": "test_genre",
         }
         lines.append(json.dumps(record))
     file_path.write_text("\n".join(lines), encoding="utf-8")
