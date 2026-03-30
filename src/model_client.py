@@ -71,7 +71,7 @@ class ModelClient:
         """
         self.config = config
 
-    def generate_response(self, messages: list[APIMessage]) -> str:
+    def generate_response(self, messages: list[APIMessage]) -> str | None:
         """Generate a response from the model.
 
         Args:
@@ -122,18 +122,18 @@ class ModelClient:
 
             except litellm.exceptions.Timeout as e:
                 logger.error(f"Timeout error for model {self.config.model_name}: {e}")
-                return ""
+                return None
             except MalformedResponseError as e:
                 logger.error(
                     f"Malformed response error for model {self.config.model_name}: {e}",
                 )
-                return ""
+                return None
             except Exception as e:
                 logger.error(
                     f"Unexpected API error for model {self.config.model_name}: {e}",
                 )
-                return ""
-        return ""
+                return None
+        return None
 
     @staticmethod
     def _unpack_response(response: Any) -> str:
