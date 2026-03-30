@@ -18,6 +18,10 @@ class MockAPIConnectionError(Exception):
     def __init__(self, message, model, llm_provider):
         super().__init__(message, model, llm_provider)
 
+class MockServiceUnavailableError(Exception):
+    def __init__(self, message, model, llm_provider):
+        super().__init__(message, model, llm_provider)
+
 
 # Setup the global mock
 MOCK_LITELLM = MagicMock()
@@ -27,6 +31,7 @@ MOCK_EXCEPTIONS = MagicMock()
 MOCK_EXCEPTIONS.Timeout = MockTimeoutError
 MOCK_EXCEPTIONS.RateLimitError = MockRateLimitError
 MOCK_EXCEPTIONS.APIConnectionError = MockAPIConnectionError
+MOCK_EXCEPTIONS.ServiceUnavailableError = MockServiceUnavailableError
 MOCK_LITELLM.exceptions = MOCK_EXCEPTIONS
 
 

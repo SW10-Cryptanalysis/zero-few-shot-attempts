@@ -185,7 +185,7 @@ def backoff_config() -> ModelConfig:
                 ),
             ],
             pacing_delay=0.0,
-            max_retries=2,  # Fixed to match the number of rate limit errors for exhaustion
+            max_retries=2,
             expected_output=None,
             expected_sleep_calls=[65.0, 65.0, 65.0],
             expected_api_calls=3,
@@ -201,7 +201,7 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output="Network Restored",
-            expected_sleep_calls=[2.0],  # Uses initial_backoff
+            expected_sleep_calls=[2.0],
             expected_api_calls=2,
         ),
         PacingBackoffTestCase(
@@ -220,7 +220,40 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output=None,
-            expected_sleep_calls=[2.0, 4.0, 8.0],  # 2s, then 4s, then 8s
+            expected_sleep_calls=[2.0, 4.0, 8.0],
+            expected_api_calls=3,
+        ),
+        PacingBackoffTestCase(
+            name="Recover after one ServiceUnavailableError",
+            api_responses=[
+                litellm.exceptions.ServiceUnavailableError(
+                    "Service Unavailable", model="", llm_provider=""
+                ),
+                {"choices": [{"message": {"content": "Service Restored"}}]},
+            ],
+            pacing_delay=0.0,
+            max_retries=2,
+            expected_output="Service Restored",
+            expected_sleep_calls=[2.0],
+            expected_api_calls=2,
+        ),
+        PacingBackoffTestCase(
+            name="Exhaust all retries with ServiceUnavailableError exponential backoff",
+            api_responses=[
+                litellm.exceptions.ServiceUnavailableError(
+                    "Service Unavailable", model="", llm_provider=""
+                ),
+                litellm.exceptions.ServiceUnavailableError(
+                    "Service Unavailable", model="", llm_provider=""
+                ),
+                litellm.exceptions.ServiceUnavailableError(
+                    "Service Unavailable", model="", llm_provider=""
+                ),
+            ],
+            pacing_delay=0.0,
+            max_retries=2,
+            expected_output=None,
+            expected_sleep_calls=[2.0, 4.0, 8.0],
             expected_api_calls=3,
         ),
     ],

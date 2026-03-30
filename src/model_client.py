@@ -111,7 +111,10 @@ class ModelClient:
                 time.sleep(long_pause)
                 attempt += 1
 
-            except litellm.exceptions.APIConnectionError as e:
+            except (
+                litellm.exceptions.APIConnectionError,
+                litellm.exceptions.ServiceUnavailableError,
+            ) as e:
                 logger.warning(
                     f"Network error (Attempt {attempt + 1}/"
                     f"{self.config.max_retries + 1}): {e}",
