@@ -43,6 +43,7 @@ class ModelConfig:
     max_tokens: int = 4096
 
     # 3. Network & Routing
+    api_key: str | None = None
     api_base: str | None = None
 
     # 4. Resilience
@@ -93,6 +94,7 @@ class ModelClient:
                     messages=messages,
                     temperature=self.config.temperature,
                     max_tokens=self.config.max_tokens,
+                    api_key=self.config.api_key,
                     api_base=self.config.api_base,
                     num_retries=0,
                     timeout=self.config.timeout,
@@ -100,21 +102,23 @@ class ModelClient:
                 return self._unpack_response(response)
 
             except litellm.exceptions.RateLimitError as e:
-                attempt += 1
-                if attempt > self.config.max_retries:
-                    logger.error(
-                        f"Rate limit error exhausted after {attempt - 1} retries "
-                        f"for model {self.config.model_name}: {e}",
-                    )
-                    return ""
-
                 logger.warning(
-                    f"Rate limit hit for {self.config.model_name}. "
-                    f"Backing off for {current_backoff}s "
-                    f"(Attempt {attempt}/{self.config.max_retries})",
+                    f"Rate Limit Hit! The API is demanding a pause. Details: {e}",
+                )
+
+                long_pause = 65
+                logger.info(f"Sleeping for {long_pause} seconds to let quotas reset...")
+                time.sleep(long_pause)
+                attempt += 1
+
+            except litellm.exceptions.APIConnectionError as e:
+                logger.warning(
+                    f"Network error (Attempt {attempt + 1}/"
+                    f"{self.config.max_retries + 1}): {e}",
                 )
                 time.sleep(current_backoff)
                 current_backoff *= self.config.backoff_factor
+                attempt += 1
 
             except litellm.exceptions.Timeout as e:
                 logger.error(f"Timeout error for model {self.config.model_name}: {e}")

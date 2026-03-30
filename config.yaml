@@ -6,6 +6,7 @@ prompts:
     # Encoding Rules
     - The ciphertext is a homophonic substitution cipher encoded using integer recurrence:
     - Each number, separated by a space, in the ciphertext represents a single plaintext symbol.
+    - The plaintext derived from the ciphertext must only contain lowercase english letters and no spaces - the length is derived from this plaintext.
     - The **first unique** symbol encountered in the plaintext is assigned **1**, the **second unique** symbol encountered is assigned **2**, and so on.
     - If a symbol has already been seen, it reuses its previously assigned number.
     - Example: the plaintext ABACB would be encoded as 1, 2, 1, 3, 2.
@@ -21,12 +22,12 @@ paths:
   output_dir: "data/results/"
 
 model:
-  name: "claude-sonnet-4-5-20250929"
+  name: "gemini/gemini-3.1-flash-lite-preview"
   temperature: 0.0
   max_tokens: 4096
-  max_retries: 3
+  max_retries: 5
   timeout: 120
-  pacing_delay: 12.0
+  pacing_delay: 2.0
   initial_backoff: 2.0
   backoff_factor: 2.0
 
