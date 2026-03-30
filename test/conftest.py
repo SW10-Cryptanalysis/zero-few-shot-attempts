@@ -14,6 +14,11 @@ class MockRateLimitError(Exception):
         super().__init__(message, model, llm_provider)
 
 
+class MockAPIConnectionError(Exception):
+    def __init__(self, message, model, llm_provider):
+        super().__init__(message, model, llm_provider)
+
+
 # Setup the global mock
 MOCK_LITELLM = MagicMock()
 MOCK_EXCEPTIONS = MagicMock()
@@ -21,6 +26,7 @@ MOCK_EXCEPTIONS = MagicMock()
 # Assign the real classes to the mock attributes
 MOCK_EXCEPTIONS.Timeout = MockTimeoutError
 MOCK_EXCEPTIONS.RateLimitError = MockRateLimitError
+MOCK_EXCEPTIONS.APIConnectionError = MockAPIConnectionError
 MOCK_LITELLM.exceptions = MOCK_EXCEPTIONS
 
 
