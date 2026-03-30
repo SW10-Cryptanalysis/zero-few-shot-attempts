@@ -24,7 +24,7 @@ class DummyResponse:
 class ExceptionHandlingTestCase:
     name: str
     mock_effect: Any
-    expected_output: str
+    expected_output: str | None
     log_message_contains: str
 
 
@@ -42,19 +42,19 @@ def client() -> ModelClient:
             mock_effect=litellm.exceptions.Timeout(
                 "Timeout", model="", llm_provider=""
             ),
-            expected_output="",
+            expected_output=None,
             log_message_contains="Timeout error",
         ),
         ExceptionHandlingTestCase(
             name="Malformed Response Exception",
             mock_effect={"invalid": "structure"},
-            expected_output="",
+            expected_output=None,
             log_message_contains="Malformed response error",
         ),
         ExceptionHandlingTestCase(
             name="Generic Exception",
             mock_effect=ValueError("Unexpected system failure"),
-            expected_output="",
+            expected_output=None,
             log_message_contains="Unexpected API error",
         ),
     ],
@@ -129,7 +129,7 @@ class PacingBackoffTestCase:
     api_responses: list[Any]
     pacing_delay: float
     max_retries: int
-    expected_output: str
+    expected_output: str | None
     expected_sleep_calls: list[float]
     expected_api_calls: int
 
@@ -168,7 +168,7 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output="Recovered",
-            expected_sleep_calls=[2.0],
+            expected_sleep_calls=[65.0],
             expected_api_calls=2,
         ),
         PacingBackoffTestCase(
@@ -185,26 +185,42 @@ def backoff_config() -> ModelConfig:
                 ),
             ],
             pacing_delay=0.0,
-            max_retries=2,
-            expected_output="",
-            expected_sleep_calls=[2.0, 4.0],
+            max_retries=2,  # Fixed to match the number of rate limit errors for exhaustion
+            expected_output=None,
+            expected_sleep_calls=[65.0, 65.0, 65.0],
             expected_api_calls=3,
         ),
         PacingBackoffTestCase(
-            name="Pacing + Multiple Rate Limits combined",
+            name="Recover after one APIConnectionError",
             api_responses=[
-                litellm.exceptions.RateLimitError(
-                    "Rate limit", model="", llm_provider=""
+                litellm.exceptions.APIConnectionError(
+                    "Connection dropped", model="", llm_provider=""
                 ),
-                litellm.exceptions.RateLimitError(
-                    "Rate limit", model="", llm_provider=""
-                ),
-                {"choices": [{"message": {"content": "Finally"}}]},
+                {"choices": [{"message": {"content": "Network Restored"}}]},
             ],
-            pacing_delay=1.0,
-            max_retries=3,
-            expected_output="Finally",
-            expected_sleep_calls=[1.0, 2.0, 4.0],
+            pacing_delay=0.0,
+            max_retries=2,
+            expected_output="Network Restored",
+            expected_sleep_calls=[2.0],  # Uses initial_backoff
+            expected_api_calls=2,
+        ),
+        PacingBackoffTestCase(
+            name="Exhaust all retries with APIConnectionError exponential backoff",
+            api_responses=[
+                litellm.exceptions.APIConnectionError(
+                    "Connection dropped", model="", llm_provider=""
+                ),
+                litellm.exceptions.APIConnectionError(
+                    "Connection dropped", model="", llm_provider=""
+                ),
+                litellm.exceptions.APIConnectionError(
+                    "Connection dropped", model="", llm_provider=""
+                ),
+            ],
+            pacing_delay=0.0,
+            max_retries=2,
+            expected_output=None,
+            expected_sleep_calls=[2.0, 4.0, 8.0],  # 2s, then 4s, then 8s
             expected_api_calls=3,
         ),
     ],
@@ -277,4 +293,4 @@ def test_unpack_response(tc: UnpackTestCase):
 def test_generate_response_while_loop_exhaustion(client: ModelClient, mocker):
     client.config.max_retries = -1
     result = client.generate_response([{"role": "user", "content": "test"}])
-    assert result == ""
+    assert result is None
