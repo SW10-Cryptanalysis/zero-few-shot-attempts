@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 # Assuming you put the schema above in src/config_schema.py
 from src.config_schema import AppConfig
 from src.data_handler import DataHandler
-from src.model_client import ModelClient, ModelConfig
+from src.model_client import ModelConfig
+from src.litellm_client import LiteLLMClient
+from src.openrouter_client import OpenRouterClient
 from src.evaluator import Evaluator
 from src.experiment_pipeline import ExperimentPipeline
 from src.utils.logging import get_logger
@@ -54,7 +56,12 @@ def main() -> None:
         initial_backoff=config.model.initial_backoff,
         backoff_factor=config.model.backoff_factor,
     )
-    client = ModelClient(config=model_cfg)
+    if config.model.name.startswith("openrouter"):
+        model_cfg.model_name = config.model.name.removeprefix("openrouter/")
+        client = OpenRouterClient(config=model_cfg)
+    else:
+        client = LiteLLMClient(config=model_cfg)
+
 
     evaluator = Evaluator()
 
