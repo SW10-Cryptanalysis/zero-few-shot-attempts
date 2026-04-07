@@ -102,13 +102,11 @@ class BaseModelClient(ABC):
             if hasattr(response, "choices"):
                 content = response.choices[0].message.content
             else:
-                content = response["choices"][0]["message"]["content"]
+                content = response["choices"][0]["message"]["content"].replace(
+                    "\n", " ",
+                )
 
             return str(content)
 
         except (KeyError, TypeError, IndexError, AttributeError) as e:
             raise MalformedResponseError(f"Response is malformed: {e}") from e
-
-
-
-
