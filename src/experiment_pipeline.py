@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Literal, TypedDict
 from tqdm import tqdm
 from src.data_handler import DataHandler, CipherSample
-from src.model_client import ModelClient
+from src.model_client import BaseModelClient
 from src.evaluator import Evaluator
 from src.utils.logging import get_logger
 
@@ -40,7 +40,7 @@ class ExperimentPipeline:
     def __init__(
         self,
         handler: DataHandler,
-        client: ModelClient,
+        client: BaseModelClient,
         evaluator: Evaluator,
         output_dir: Path,
     ) -> None:
