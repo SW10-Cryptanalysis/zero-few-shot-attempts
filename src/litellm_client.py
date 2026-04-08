@@ -36,7 +36,7 @@ class LiteLLMClient(BaseModelClient):
                     f"Rate Limit Hit! The API is demanding a pause. Details: {e}",
                 )
 
-                long_pause = 65
+                long_pause = 10 * max(attempt * self.config.backoff_factor, 1)
                 logger.info(f"Sleeping for {long_pause} seconds to let quotas reset...")
                 time.sleep(long_pause)
                 attempt += 1
