@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Literal, TypedDict
 from tqdm import tqdm
 from src.data_handler import DataHandler, CipherSample
-from src.model_client import BaseModelClient
+from src.model_client import ModelClient
 from src.evaluator import Evaluator
 from src.utils.logging import get_logger
 
@@ -40,7 +40,7 @@ class ExperimentPipeline:
     def __init__(
         self,
         handler: DataHandler,
-        client: BaseModelClient,
+        client: ModelClient,
         evaluator: Evaluator,
         output_dir: Path,
     ) -> None:
@@ -113,8 +113,11 @@ class ExperimentPipeline:
 
         all_results: list[ResultDict] = []
 
-        pbar = tqdm(total=len(self.handler.dataset), desc=f"Experiment: {strategy}")
-        pbar.update(len(processed_ids))
+        pbar = tqdm(
+            total=len(self.handler.dataset),
+            desc=f"Experiment: {strategy}",
+            initial=len(processed_ids),
+        )
 
         for batch in self.handler.get_batch(batch_size):
             batch_to_process = [s for s in batch if s.sample_id not in processed_ids]
