@@ -48,10 +48,8 @@ class Evaluator:
             flags=re.DOTALL,
         )
 
-        blocks = cleaned.split("\n\n")
-        longest_block = max(blocks, key=len)
-
-        return longest_block.strip()
+        longest_word = max(cleaned.split(), key=len)
+        return longest_word.strip().replace(",", "")
 
     def _calculate_ser(self, prediction: str, ground_truth: str) -> float:
         """Calculate the edit distance between the prediction and ground truth.
