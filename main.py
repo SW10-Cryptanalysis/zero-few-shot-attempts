@@ -1,13 +1,12 @@
 import yaml
 from pathlib import Path
 from dotenv import load_dotenv
+import os
 
 # Assuming you put the schema above in src/config_schema.py
 from src.config_schema import AppConfig
 from src.data_handler import DataHandler
-from src.model_client import ModelConfig
-from src.litellm_client import LiteLLMClient
-from src.openrouter_client import OpenRouterClient
+from src.model_client import ModelConfig, ModelClient
 from src.evaluator import Evaluator
 from src.experiment_pipeline import ExperimentPipeline
 from src.utils.logging import get_logger
@@ -55,13 +54,20 @@ def main() -> None:
         pacing_delay=config.model.pacing_delay,
         initial_backoff=config.model.initial_backoff,
         backoff_factor=config.model.backoff_factor,
+        backend="litellm",
     )
-    if config.model.name.startswith("openrouter"):
+    if config.model.name.startswith("openrouter/"):
         model_cfg.model_name = config.model.name.removeprefix("openrouter/")
-        client = OpenRouterClient(config=model_cfg)
-    else:
-        client = LiteLLMClient(config=model_cfg)
+        model_cfg.backend = "openrouter"
+        model_cfg.api_base = "https://openrouter.ai/api/v1"
+        model_cfg.api_key = os.environ.get("OPENROUTER_API_KEY")
+    elif config.model.name.startswith("groq/"):
+        model_cfg.model_name = config.model.name.removeprefix("groq/")
+        model_cfg.backend = "openai"
+        model_cfg.api_key = os.environ.get("GROQ_API_KEY")
+        model_cfg.api_base = "https://api.groq.com/openai/v1"
 
+    client = ModelClient(model_cfg)
 
     evaluator = Evaluator()
 
