@@ -17,6 +17,7 @@ class ResultDict(TypedDict):
     model: str
     strategy: Literal["zero-shot", "few-shot"]
     ser: float
+    smer: float
     is_exact_match: bool
     raw_output: str
     cleaned_prediction: str
@@ -160,13 +161,18 @@ class ExperimentPipeline:
                     )
                     continue
 
-                result = self.evaluator.evaluate(response, sample.plaintext)
+                result = self.evaluator.evaluate(
+                    response,
+                    sample.plaintext,
+                    sample.ciphertext,
+                )
 
                 result_entry: ResultDict = {
                     "sample_id": sample.sample_id,
                     "model": self.client.config.model_name,
                     "strategy": strategy,
                     "ser": result.ser,
+                    "smer": result.smer,
                     "is_exact_match": result.is_exact_match,
                     "raw_output": result.raw_output,
                     "cleaned_prediction": result.cleaned_prediction,
