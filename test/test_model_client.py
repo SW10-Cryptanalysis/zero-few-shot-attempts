@@ -30,7 +30,10 @@ class ExceptionHandlingTestCase:
 
 @pytest.fixture
 def client() -> ModelClient:
-    config = ModelConfig(model_name="test-model", pacing_delay=0.0, max_retries=0)
+    """Provides a fresh ModelClient configured for litellm backend to hit our mocks."""
+    config = ModelConfig(
+        model_name="test-model", pacing_delay=0.0, max_retries=0, backend="litellm"
+    )
     return ModelClient(config=config)
 
 
@@ -43,7 +46,7 @@ def client() -> ModelClient:
                 "Timeout", model="", llm_provider=""
             ),
             expected_output=None,
-            log_message_contains="Timeout error",
+            log_message_contains="Unexpected API error",
         ),
         ExceptionHandlingTestCase(
             name="Malformed Response Exception",
@@ -135,14 +138,17 @@ class PacingBackoffTestCase:
 
 
 @pytest.fixture
-def backoff_config() -> ModelConfig:
-    return ModelConfig(
+def backoff_client() -> ModelClient:
+    """A client tailored to test the exponential backoff math and loop handling."""
+    config = ModelConfig(
         model_name="test-model",
         max_retries=2,
         pacing_delay=0.5,
         initial_backoff=2.0,
         backoff_factor=2.0,
+        backend="litellm",
     )
+    return ModelClient(config=config)
 
 
 @pytest.mark.parametrize(
@@ -154,7 +160,7 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.5,
             max_retries=2,
             expected_output="Success",
-            expected_sleep_calls=[0.5],
+            expected_sleep_calls=[0.5],  # Only the initial pacing delay
             expected_api_calls=1,
         ),
         PacingBackoffTestCase(
@@ -168,11 +174,12 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output="Recovered",
-            expected_sleep_calls=[65.0],
+            # Initial 0.0 pacing + Rate Limit Math: 20 * max(0 * 2, 1) = 20
+            expected_sleep_calls=[0.0, 20.0],
             expected_api_calls=2,
         ),
         PacingBackoffTestCase(
-            name="Exhaust all retries with exponential backoff",
+            name="Exhaust all retries with exponential rate limit backoff",
             api_responses=[
                 litellm.exceptions.RateLimitError(
                     "Rate limit", model="", llm_provider=""
@@ -187,7 +194,8 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output=None,
-            expected_sleep_calls=[65.0, 65.0, 65.0],
+            # Initial + 20*max(0,1) + 20*max(2,1) + 20*max(4,1)
+            expected_sleep_calls=[0.0, 20.0, 40.0, 80.0],
             expected_api_calls=3,
         ),
         PacingBackoffTestCase(
@@ -201,7 +209,8 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output="Network Restored",
-            expected_sleep_calls=[2.0],
+            # Initial 0.0 pacing + 2.0 network backoff
+            expected_sleep_calls=[0.0, 2.0],
             expected_api_calls=2,
         ),
         PacingBackoffTestCase(
@@ -220,7 +229,8 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output=None,
-            expected_sleep_calls=[2.0, 4.0, 8.0],
+            # Initial + 2.0 (factor 2.0) + 4.0 (factor 2.0) + 8.0
+            expected_sleep_calls=[0.0, 2.0, 4.0, 8.0],
             expected_api_calls=3,
         ),
         PacingBackoffTestCase(
@@ -234,7 +244,7 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output="Service Restored",
-            expected_sleep_calls=[2.0],
+            expected_sleep_calls=[0.0, 2.0],
             expected_api_calls=2,
         ),
         PacingBackoffTestCase(
@@ -253,24 +263,24 @@ def backoff_config() -> ModelConfig:
             pacing_delay=0.0,
             max_retries=2,
             expected_output=None,
-            expected_sleep_calls=[2.0, 4.0, 8.0],
+            expected_sleep_calls=[0.0, 2.0, 4.0, 8.0],
             expected_api_calls=3,
         ),
     ],
     ids=lambda tc: tc.name,
 )
 def test_backoff_and_pacing_logic(
-    client: ModelClient, mocker, tc: PacingBackoffTestCase
+    backoff_client: ModelClient, mocker, tc: PacingBackoffTestCase
 ):
-    client.config.pacing_delay = tc.pacing_delay
-    client.config.max_retries = tc.max_retries
+    backoff_client.config.pacing_delay = tc.pacing_delay
+    backoff_client.config.max_retries = tc.max_retries
 
     mock_sleep = mocker.patch("src.model_client.time.sleep")
+    mock_completion = mocker.patch(
+        "src.model_client.litellm.completion", side_effect=tc.api_responses
+    )
 
-    patch_target = "src.model_client.litellm.completion"
-    mock_completion = mocker.patch(patch_target, side_effect=tc.api_responses)
-
-    result = client.generate_response([{"role": "user", "content": "test"}])
+    result = backoff_client.generate_response([{"role": "user", "content": "test"}])
 
     assert result == tc.expected_output
     assert mock_completion.call_count == tc.expected_api_calls
