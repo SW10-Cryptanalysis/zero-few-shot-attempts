@@ -53,7 +53,12 @@ def retrieve_sers(
     """
     mean_sers: list[tuple[str, str, float, float, float, int]] = []
     for model in os.listdir("data/results"):
-        strategy = model.split("_")[2].replace(".csv", "")
+        try:
+            strategy = model.split("_")[2].replace(".csv", "")
+        except IndexError:
+            logger.error(f"No strategy found in {model}")
+            continue
+
         model = model.split("_")[1]
         if not model:
             logger.error(f"No model name found in {model}")
@@ -134,13 +139,23 @@ if __name__ == "__main__":
     parser.add_argument("--strategy", type=str, default="zero-shot")
     args = parser.parse_args()
     if not args.model:
-        mean_sers = retrieve_sers(model=args.model, strategy=args.strategy)
-        logger.info(format_table(mean_sers))
-        exit(0)
+        try:
+            mean_sers = retrieve_sers(model=args.model, strategy=args.strategy)
+            logger.info(format_table(mean_sers))
+            exit(0)
+        except Exception as e:
+            logger.error(e)
+            exit(1)
 
     try:
-        ser = mean_ser(model=args.model, strategy=args.strategy)
-        logger.info(f"Mean SER for {args.model} ({args.strategy}): {ser:.4f}")
+        ser, mono_ser, ser_homophonic, num_samples = mean_ser(
+            model=args.model,
+            strategy=args.strategy,
+        )
+        logger.info(
+            f"Mean SER for {args.model} ({args.strategy}): {ser:.4f}, (mono "
+            f"{mono_ser:.4f}, homophonic {ser_homophonic:.4f})",
+        )
     except FileNotFoundError as e:
         logger.error(e)
         exit(1)
