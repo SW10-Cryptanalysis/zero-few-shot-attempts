@@ -94,7 +94,7 @@ def evaluator() -> Evaluator:
         CleanPredictionTestCase(
             name="Conversational filler with double newlines",
             raw_output="Here is the text:\n\nACTUALCIPHERTEXT\n\nHope this helps!",
-            expected_clean="Here is the text:ACTUALCIPHERTEXTHope this helps!",
+            expected_clean="ACTUALCIPHERTEXT",
             # Note: The updated _clean_prediction removes newlines but keeps structure
         ),
     ],
@@ -245,35 +245,35 @@ def test_extract_keys(evaluator: Evaluator, tc: ExtractKeysTestCase):
             name="Empty Prediction",
             prediction="",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_smer=1.0,
         ),
         SMERTestCase(
             name="Perfect Match",
             prediction="HELLO",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_smer=0.0,  # 4 unique symbols, 0 errors
         ),
         SMERTestCase(
             name="One substitution error",
             prediction="HELLP",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_smer=0.25,  # Symbol 4 is wrong. 1 error / 4 unique symbols
         ),
         SMERTestCase(
             name="Inconsistent prediction (<95%)",
             prediction="AABA",
             ground_truth="AAAA",
-            ciphertext="1111",
+            ciphertext="1 1 1 1",
             expected_smer=1.0,  # Symbol 1 maps to A(3) and B(1). 75% fails threshold. 1 error / 1 unique symbol
         ),
         SMERTestCase(
             name="Truncation penalty",
             prediction="HEL",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_smer=0.25,  # Symbol 4 never predicted. 1 error / 4 unique symbols
         ),
     ],
@@ -292,7 +292,7 @@ def test_calculate_smer(evaluator: Evaluator, tc: SMERTestCase):
             name="End-to-End Perfect Match",
             raw_output="```\nHELLO\n```",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_ser=0.0,
             expected_smer=0.0,
             expected_exact_match=True,
@@ -301,7 +301,7 @@ def test_calculate_smer(evaluator: Evaluator, tc: SMERTestCase):
             name="End-to-End Partial Match",
             raw_output="```\nHELLP\n```",
             ground_truth="HELLO",
-            ciphertext="12334",
+            ciphertext="1 2 3 3 4",
             expected_ser=0.2,  # 1 char error / 5 total chars
             expected_smer=0.25,  # 1 symbol error / 4 unique symbols
             expected_exact_match=False,
