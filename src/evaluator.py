@@ -139,7 +139,7 @@ class Evaluator:
             predicted_letter = max(counts, key=lambda k: counts[k])
             letter_count = counts[predicted_letter]
 
-            if letter_count / total_count > self.TAU:
+            if letter_count / total_count >= self.TAU:
                 empirical_key[symbol] = predicted_letter
 
         return empirical_key
