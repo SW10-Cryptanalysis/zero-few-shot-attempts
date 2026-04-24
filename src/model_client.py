@@ -191,7 +191,7 @@ class ModelClient:
             else:
                 content = str(response["choices"][0]["message"]["content"])
 
-            return str(content).replace("\n", " ").replace(",", "")
+            return str(content)
 
         except (KeyError, TypeError, IndexError, AttributeError) as e:
             raise MalformedResponseError(f"Response is malformed: {e}") from e

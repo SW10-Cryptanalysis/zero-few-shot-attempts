@@ -53,7 +53,7 @@ class Evaluator:
         )
 
         longest_word = max(cleaned.split(), key=len)
-        return longest_word.strip().replace(",", "")
+        return re.sub(r"[^a-z]", "", longest_word.lower())
 
     def _calculate_ser(self, prediction: str, ground_truth: str) -> float:
         """Calculate the edit distance between the prediction and ground truth.
