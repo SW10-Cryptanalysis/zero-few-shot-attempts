@@ -17,6 +17,7 @@ class ResultDict(TypedDict):
     model: str
     strategy: Literal["zero-shot", "few-shot"]
     ser: float
+    smer: float
     is_exact_match: bool
     raw_output: str
     cleaned_prediction: str
@@ -113,8 +114,11 @@ class ExperimentPipeline:
 
         all_results: list[ResultDict] = []
 
-        pbar = tqdm(total=len(self.handler.dataset), desc=f"Experiment: {strategy}")
-        pbar.update(len(processed_ids))
+        pbar = tqdm(
+            total=len(self.handler.dataset),
+            desc=f"Experiment: {strategy}",
+            initial=len(processed_ids),
+        )
 
         for batch in self.handler.get_batch(batch_size):
             batch_to_process = [s for s in batch if s.sample_id not in processed_ids]
@@ -157,13 +161,18 @@ class ExperimentPipeline:
                     )
                     continue
 
-                result = self.evaluator.evaluate(response, sample.plaintext)
+                result = self.evaluator.evaluate(
+                    response,
+                    sample.plaintext,
+                    sample.ciphertext,
+                )
 
                 result_entry: ResultDict = {
                     "sample_id": sample.sample_id,
                     "model": self.client.config.model_name,
                     "strategy": strategy,
                     "ser": result.ser,
+                    "smer": result.smer,
                     "is_exact_match": result.is_exact_match,
                     "raw_output": result.raw_output,
                     "cleaned_prediction": result.cleaned_prediction,

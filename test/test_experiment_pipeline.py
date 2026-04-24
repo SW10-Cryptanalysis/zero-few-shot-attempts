@@ -11,6 +11,7 @@ def create_full_dummy_result(sample_id: str) -> dict:
         "model": "test-model",
         "strategy": "zero-shot",
         "ser": 0.0,
+        "smer": 0.0,
         "is_exact_match": True,
         "raw_output": "...",
         "cleaned_prediction": "...",
@@ -151,7 +152,15 @@ def test_process_batch_errors(
     client.generate_response.side_effect = tc.client_effects
 
     if tc.eval_crashes_on_first:
-        evaluator.evaluate.side_effect = [Exception("Random Crash"), mocker.Mock()]
+        # Mock a successful EvaluationResult containing the required fields
+        mock_result = mocker.Mock(
+            ser=0.0,
+            smer=0.0,
+            is_exact_match=True,
+            raw_output="...",
+            cleaned_prediction="...",
+        )
+        evaluator.evaluate.side_effect = [Exception("Random Crash"), mock_result]
 
     samples = [
         CipherSample(sid, "P", "C", {}, CipherMetadata(1, False, "t"))
