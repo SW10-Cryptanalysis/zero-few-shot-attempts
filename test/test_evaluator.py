@@ -84,17 +84,17 @@ def evaluator() -> Evaluator:
         CleanPredictionTestCase(
             name="Perfect output without filler",
             raw_output="HELLOWORLD",
-            expected_clean="HELLOWORLD",
+            expected_clean="helloworld",
         ),
         CleanPredictionTestCase(
             name="Markdown code blocks",
             raw_output="```plaintext\nHELLOWORLD\n```",
-            expected_clean="HELLOWORLD",
+            expected_clean="helloworld",
         ),
         CleanPredictionTestCase(
             name="Conversational filler with double newlines",
             raw_output="Here is the text:\n\nACTUALCIPHERTEXT\n\nHope this helps!",
-            expected_clean="ACTUALCIPHERTEXT",
+            expected_clean="actualciphertext",
             # Note: The updated _clean_prediction removes newlines but keeps structure
         ),
     ],
@@ -290,8 +290,17 @@ def test_calculate_smer(evaluator: Evaluator, tc: SMERTestCase):
     [
         EvaluateTestCase(
             name="End-to-End Perfect Match",
+            raw_output="```\nhello\n```",
+            ground_truth="hello",
+            ciphertext="1 2 3 3 4",
+            expected_ser=0.0,
+            expected_smer=0.0,
+            expected_exact_match=True,
+        ),
+        EvaluateTestCase(
+            name="End-to-End Perfect Match (Uppercase)",
             raw_output="```\nHELLO\n```",
-            ground_truth="HELLO",
+            ground_truth="hello",
             ciphertext="1 2 3 3 4",
             expected_ser=0.0,
             expected_smer=0.0,
@@ -299,8 +308,8 @@ def test_calculate_smer(evaluator: Evaluator, tc: SMERTestCase):
         ),
         EvaluateTestCase(
             name="End-to-End Partial Match",
-            raw_output="```\nHELLP\n```",
-            ground_truth="HELLO",
+            raw_output="```\nhellp\n```",
+            ground_truth="hello",
             ciphertext="1 2 3 3 4",
             expected_ser=0.2,  # 1 char error / 5 total chars
             expected_smer=0.25,  # 1 symbol error / 4 unique symbols
