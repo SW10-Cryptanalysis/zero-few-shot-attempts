@@ -209,3 +209,4 @@ __marimo__/
 data/
 
 sample_dataset.py
+results/*.png

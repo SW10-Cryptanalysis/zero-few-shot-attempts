@@ -10,6 +10,8 @@ dependencies = [
     "litellm>=1.82.6",
     "editdistance>=0.8.1",
     "pandas>=3.0.1",
+    "matplotlib>=3.10.9",
+    "seaborn>=0.13.2",
 ]
 
 
