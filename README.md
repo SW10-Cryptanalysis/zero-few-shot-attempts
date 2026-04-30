@@ -3,6 +3,23 @@
 
 This project is a framework for testing the ability of large language models (LLMs) to decipher homophony-based substitution ciphers. It supports both "zero-shot" and "few-shot" learning strategies, allowing for a comprehensive evaluation of model performance.
 
+## Table of Contents
+Cipher Decryption Tester
+
+- [Results](#results)
+- [Features](#features)
+- [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Results
+Results of all the zero-shot and few-shots can be found in the `results` directory, in .csv files.
+
 ## Features
 
 - **Zero-shot and Few-shot Learning:** Test models with or without examples.
