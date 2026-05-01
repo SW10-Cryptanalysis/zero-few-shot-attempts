@@ -54,7 +54,9 @@ def process_csv_files(directory: str | None = None) -> None:
 
     # Ensure numeric columns are properly typed
     combined_df["ser"] = combined_df["ser"].astype(float)
-    combined_df["cipher_length"] = combined_df["cipher_length"].astype(float)
+
+    # Calculate cipher_length based on the string length of the ground_truth field
+    combined_df["cipher_length"] = combined_df["ground_truth"].astype(str).str.len()
 
     # 3. Define the 4 combinations we need to plot
     conditions = [

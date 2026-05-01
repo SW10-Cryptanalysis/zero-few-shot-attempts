@@ -96,6 +96,21 @@ Results of all the zero-shot and few-shots can be found in the `results` directo
 
    The results will be saved in the directory specified in `config.yaml` (default is `data/results/`).
 
+3. **Visualize the results:**
+
+   Using `uv`:
+   ```bash
+   uv run -m src.visualization.visualization
+   ```
+
+   or using `python`:
+
+   ```bash
+   python -m src.visualization.visualization
+   ```
+
+   The results will be saved in the directory specified in `config.yaml` (default is `data/results/`).
+
 ## Project Structure
 
 ```
@@ -109,7 +124,9 @@ Results of all the zero-shot and few-shots can be found in the `results` directo
 │   ├── data_handler.py
 │   ├── evaluator.py
 │   ├── experiment_pipeline.py
-│   └── model_client.py
+│   ├── model_client.py
+│   └── visualization
+│       └── visualization.py
 └── test
 ```
 
@@ -121,6 +138,7 @@ Results of all the zero-shot and few-shots can be found in the `results` directo
   - **`model_client.py`**: Interacts with the LLM.
   - **`evaluator.py`**: Evaluates the model's predictions.
   - **`config_schema.py`**: Defines the structure of the configuration file.
+  - **`visualization/visualization.py`**: Generates graphs visualizing the SER given cipher length and redundancy
 - **`test/`**: Contains unit tests for the project.
 
 ## Configuration

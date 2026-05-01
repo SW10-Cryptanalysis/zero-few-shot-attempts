@@ -87,6 +87,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
             "with_spaces": "true",
             "ser": 0.5,
             "cipher_length": 400,
+            "ground_truth": "x" * 400,
             "model": "gpt",
         }
     ]
@@ -133,6 +134,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "few-shot",
                     "ser": 0.7,
                     "cipher_length": 400,
+                    "ground_truth": "x" * 400,
                     "with_spaces": "False",
                 },
                 {
@@ -141,6 +143,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "few-shot",
                     "ser": 0.5,
                     "cipher_length": 400,
+                    "ground_truth": "x" * 400,
                     "with_spaces": "False",
                 },
             ],
@@ -156,6 +159,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": " FEW-SHOT ",
                     "ser": 0.2,
                     "cipher_length": 10,
+                    "ground_truth": "x" * 10,
                     "with_spaces": "True",
                 },
                 {
@@ -164,6 +168,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "Zero-Shot",
                     "ser": 0.8,
                     "cipher_length": 10,
+                    "ground_truth": "x" * 10,
                     "with_spaces": "FALSE",
                 },
             ],
@@ -181,6 +186,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "few-shot",
                     "ser": 0.1,
                     "cipher_length": 1,
+                    "ground_truth": "x",
                     "with_spaces": "true",
                 },
                 {
@@ -189,6 +195,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "few-shot",
                     "ser": 0.1,
                     "cipher_length": 1,
+                    "ground_truth": "x",
                     "with_spaces": "false",
                 },
                 {
@@ -197,6 +204,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "zero-shot",
                     "ser": 0.1,
                     "cipher_length": 1,
+                    "ground_truth": "x",
                     "with_spaces": "true",
                 },
                 {
@@ -205,6 +213,7 @@ def test_exception_handling_for_bad_files(tmp_path: Path, mock_savefig, mocker):
                     "strategy": "zero-shot",
                     "ser": 0.1,
                     "cipher_length": 1,
+                    "ground_truth": "x",
                     "with_spaces": "false",
                 },
             ],
@@ -254,6 +263,7 @@ def test_redundancy_extraction(tmp_path: Path, mock_savefig):
             "strategy": "few-shot",
             "ser": 0.5,
             "cipher_length": 400,
+            "ground_truth": "x" * 400,
             "with_spaces": "true",
         },
         {
@@ -262,6 +272,7 @@ def test_redundancy_extraction(tmp_path: Path, mock_savefig):
             "strategy": "few-shot",
             "ser": 0.9,
             "cipher_length": 400,
+            "ground_truth": "x" * 400,
             "with_spaces": "true",
         },
     ]
