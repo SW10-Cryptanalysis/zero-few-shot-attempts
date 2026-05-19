@@ -84,7 +84,6 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
     fig.suptitle(f"{model_name}", fontsize=15, fontweight="bold")
 
-    # Track used coordinates to detect overlaps across strategies
     ax1_used_coords = set()
     ax2_used_coords = set()
 
@@ -97,7 +96,6 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
 
         is_z408 = (redundancies == 7.556)
 
-        # 1. Plot normal circles
         ax1.scatter(
             lengths[~is_z408],
             sers[~is_z408],
@@ -115,7 +113,6 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
             label=strategy_name,
         )
 
-        # 2. Plot z408 stars and dynamic smart labels
         if np.any(is_z408):
             z408_lengths = lengths[is_z408]
             z408_redundancies = redundancies[is_z408]
@@ -124,7 +121,6 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
             suffix = "zero" if "zero" in strategy_name.lower() else "few"
             label_text = f"z408-{suffix}"
 
-            # Draw the stars
             ax1.scatter(
                 z408_lengths,
                 z408_sers,
@@ -144,15 +140,12 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
                 linewidths=1,
             )
 
-            # Smart Annotation for Graph 1 (Length vs SER)
             for x, y in zip(z408_lengths, z408_sers, strict=True):
                 coord = (float(x), float(y))
                 if coord in ax1_used_coords:
-                    # Overlap found: Push label BELOW the star
                     offset = (0, -15)
                     v_align = "top"
                 else:
-                    # First time seeing this coordinate: Place label ABOVE the star
                     offset = (0, 10)
                     v_align = "bottom"
                     ax1_used_coords.add(coord)
@@ -161,15 +154,12 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
                              xytext=offset, ha="center", va=v_align,
                              fontweight="bold", fontsize=9)
 
-            # Smart Annotation for Graph 2 (Redundancy vs SER)
             for x, y in zip(z408_redundancies, z408_sers, strict=True):
                 coord = (float(x), float(y))
                 if coord in ax2_used_coords:
-                    # Overlap found: Push label BELOW the star
                     offset = (0, -15)
                     v_align = "top"
                 else:
-                    # First time seeing this coordinate: Place label ABOVE the star
                     offset = (0, 10)
                     v_align = "bottom"
                     ax2_used_coords.add(coord)
@@ -178,7 +168,6 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
                              xytext=offset, ha="center", va=v_align,
                              fontweight="bold", fontsize=9)
 
-    # Styling configurations
     ax1.set_title("Symbol Error Rate (SER) vs Cipher Length")
     ax1.set_xlabel("Cipher Length")
     ax1.set_ylabel("SER")
@@ -194,7 +183,7 @@ def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) ->
     plt.tight_layout()
 
     clean_filename = re.sub(r'[\\/*?:"<>| ]', "_", model_name).lower()
-    output_image_path = output_dir / f"{clean_filename}.png"
+    output_image_path = output_dir / f"{clean_filename}.pdf"
 
     plt.savefig(output_image_path, dpi=300, bbox_inches="tight")
     plt.close(fig)

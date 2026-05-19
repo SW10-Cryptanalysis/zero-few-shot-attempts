@@ -56,12 +56,12 @@ def test_generate_model_plots_with_z408_overlap(tmp_path):
     """Ensures z408 elements draw star markers, and overlapping annotations switch to vertical shifts."""
     mock_strategies_data = {
         "zero-shot": {
-            "lengths": [100, 200], 
+            "lengths": [100, 200],
             "redundancies": [10, 7.556],
             "sers": [0.4, 0.2]
         },
         "few-shot": {
-            "lengths": [100, 200], 
+            "lengths": [100, 200],
             "redundancies": [10, 7.556],
             "sers": [0.2, 0.2]
         }
@@ -71,7 +71,7 @@ def test_generate_model_plots_with_z408_overlap(tmp_path):
 
     generate_model_plots(model_name, mock_strategies_data, tmp_path)
 
-    expected_filename = "llama_3__test_overlap.png"
+    expected_filename = "llama_3__test_overlap.pdf"
     expected_path = tmp_path / expected_filename
 
     assert expected_path.exists()
