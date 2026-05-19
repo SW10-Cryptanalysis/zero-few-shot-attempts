@@ -12,6 +12,7 @@ from src.visualize_results import extract_redundancy, parse_csv_files, generate_
         ("N10000_R25_09", 25),
         ("N5000_R0_12", 0),
         ("N100_R100_1", 100),
+        ("z408", 7.556),
         ("invalid_format", None),
         ("", None),
         (None, None),
@@ -51,18 +52,26 @@ def test_parse_csv_files(tmp_path):
     assert data["llama3"]["zero-shot"]["redundancies"] == [20]
     assert data["llama3"]["zero-shot"]["sers"] == [0.15]
 
-def test_generate_model_plots(tmp_path):
-    """Ensures Matplotlib successfully draws, saves, and names files correctly."""
+def test_generate_model_plots_with_z408_overlap(tmp_path):
+    """Ensures z408 elements draw star markers, and overlapping annotations switch to vertical shifts."""
     mock_strategies_data = {
-        "zero-shot": {"lengths": [100, 200], "redundancies": [10, 20], "sers": [0.4, 0.2]},
-        "few-shot": {"lengths": [100, 200], "redundancies": [10, 20], "sers": [0.2, 0.1]}
+        "zero-shot": {
+            "lengths": [100, 200], 
+            "redundancies": [10, 7.556],
+            "sers": [0.4, 0.2]
+        },
+        "few-shot": {
+            "lengths": [100, 200], 
+            "redundancies": [10, 7.556],
+            "sers": [0.2, 0.2]
+        }
     }
 
-    model_name = "Llama/3: Test"
+    model_name = "Llama/3: Test Overlap"
 
     generate_model_plots(model_name, mock_strategies_data, tmp_path)
 
-    expected_filename = "llama_3__test.png"
+    expected_filename = "llama_3__test_overlap.png"
     expected_path = tmp_path / expected_filename
 
     assert expected_path.exists()
@@ -77,7 +86,6 @@ def test_main_directory_not_found(caplog, mocker):
         main()
 
     assert "Error: Directory not found at" in caplog.text
-
 
 def test_main_no_csv_files(tmp_path, caplog, mocker):
     """Covers the empty directory validation block and exit branch safely."""
@@ -96,7 +104,6 @@ def test_main_no_csv_files(tmp_path, caplog, mocker):
         main()
 
     assert f"No CSV files found in {tmp_path}" in caplog.text
-
 
 def test_main_full_execution_flow(tmp_path, caplog, mocker):
     """Covers parse_csv_files branch, loops, and successful final execution blocks."""

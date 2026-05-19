@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import re
+import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 from easy_logging import EasyFormatter
@@ -15,10 +16,12 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 
-def extract_redundancy(sample_id: str) -> int | None:
+def extract_redundancy(sample_id: str) -> int | float | None:
     """Extract the integer following '_R' in the sample_id."""
     if not sample_id:
         return None
+    if "z408" in sample_id:
+        return 7.556
     match = re.search(r"_R(\d+)", sample_id)
     return int(match.group(1)) if match else None
 
@@ -71,42 +74,111 @@ def parse_csv_files(csv_files: list[str]) -> dict:
 
     return data_by_model
 
-
 def generate_model_plots(model_name: str, strategies: dict, output_dir: Path) -> None:
-    """Generate and save the dual scatter plots for a specific model."""
+    """Generate and save the dual scatter plots."""
     strategy_colors = {
         "zero-shot": "#1f77b4",
         "few-shot": "#d62728",
     }
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-    fig.suptitle(
-        f"{model_name}",
-        fontsize=15,
-        fontweight="bold",
-    )
+    fig.suptitle(f"{model_name}", fontsize=15, fontweight="bold")
+
+    # Track used coordinates to detect overlaps across strategies
+    ax1_used_coords = set()
+    ax2_used_coords = set()
 
     for strategy_name, metrics in strategies.items():
-        color = strategy_colors.get(strategy_name.lower())
+        color = strategy_colors.get(strategy_name.lower(), "#7f7f7f")
 
+        lengths = np.array(metrics["lengths"])
+        redundancies = np.array(metrics["redundancies"])
+        sers = np.array(metrics["sers"])
+
+        is_z408 = (redundancies == 7.556)
+
+        # 1. Plot normal circles
         ax1.scatter(
-            metrics["lengths"],
-            metrics["sers"],
+            lengths[~is_z408],
+            sers[~is_z408],
             alpha=0.6,
             color=color,
             edgecolors="none",
             label=strategy_name,
         )
-
         ax2.scatter(
-            metrics["redundancies"],
-            metrics["sers"],
+            redundancies[~is_z408],
+            sers[~is_z408],
             alpha=0.6,
             color=color,
             edgecolors="none",
             label=strategy_name,
         )
 
+        # 2. Plot z408 stars and dynamic smart labels
+        if np.any(is_z408):
+            z408_lengths = lengths[is_z408]
+            z408_redundancies = redundancies[is_z408]
+            z408_sers = sers[is_z408]
+
+            suffix = "zero" if "zero" in strategy_name.lower() else "few"
+            label_text = f"z408-{suffix}"
+
+            # Draw the stars
+            ax1.scatter(
+                z408_lengths,
+                z408_sers,
+                marker="*",
+                s=250,
+                color=color,
+                edgecolors="black",
+                linewidths=1,
+            )
+            ax2.scatter(
+                z408_redundancies,
+                z408_sers,
+                marker="*",
+                s=250,
+                color=color,
+                edgecolors="black",
+                linewidths=1,
+            )
+
+            # Smart Annotation for Graph 1 (Length vs SER)
+            for x, y in zip(z408_lengths, z408_sers, strict=True):
+                coord = (float(x), float(y))
+                if coord in ax1_used_coords:
+                    # Overlap found: Push label BELOW the star
+                    offset = (0, -15)
+                    v_align = "top"
+                else:
+                    # First time seeing this coordinate: Place label ABOVE the star
+                    offset = (0, 10)
+                    v_align = "bottom"
+                    ax1_used_coords.add(coord)
+
+                ax1.annotate(label_text, (x, y), textcoords="offset points",
+                             xytext=offset, ha="center", va=v_align,
+                             fontweight="bold", fontsize=9)
+
+            # Smart Annotation for Graph 2 (Redundancy vs SER)
+            for x, y in zip(z408_redundancies, z408_sers, strict=True):
+                coord = (float(x), float(y))
+                if coord in ax2_used_coords:
+                    # Overlap found: Push label BELOW the star
+                    offset = (0, -15)
+                    v_align = "top"
+                else:
+                    # First time seeing this coordinate: Place label ABOVE the star
+                    offset = (0, 10)
+                    v_align = "bottom"
+                    ax2_used_coords.add(coord)
+
+                ax2.annotate(label_text, (x, y), textcoords="offset points",
+                             xytext=offset, ha="center", va=v_align,
+                             fontweight="bold", fontsize=9)
+
+    # Styling configurations
     ax1.set_title("Symbol Error Rate (SER) vs Cipher Length")
     ax1.set_xlabel("Cipher Length")
     ax1.set_ylabel("SER")
